@@ -11,12 +11,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="login-container">
+<body style="display: block;">
+    <div class="back" style="margin-top: 40px; margin-left: 40px;">
+        <a href="home" ><img src="{% static 'core/back-arrow.svg' %}" width="40px"></img></a>
+    </div>
+    <div class="login-container" style="margin-top: -70px;">
         <form method="POST" enctype="multipart/form-data" action="{% url 'upload_excel' %}">
             {% csrf_token %}
             <p>
-                <h2>Easy Licit</h2>
+                <h2><img src="{% static 'core/logo-color-peke.jpg' %}"  width="200px"  style="border-radius: 12px;" alt="logo-colo"></h2>
             </p>
             <p>
                 <label class="btn-xls">
@@ -51,6 +54,10 @@
                 <label for="subtotal">Sub total: </label>
                 <input id="subtotal" name="subtotal" type="text" required />
             </p>
+            <select name="file_type">
+                <option value="word">Rellenar Plantilla .docx</option>
+                <option value="pdf">Rellenar Plantilla .pdf</option>
+            </select>
             <p style="display: flex; justify-content: center; margin-top: 30px;">
                 <button type="submit">Rellenar Plantilla</button>
             </p>

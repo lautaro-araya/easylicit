@@ -13,7 +13,7 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>EasyLicit</h2>
+        <h2><img src="{% static 'core/logo-color.jpeg' %}"  width="200px"  style="border-radius: 15px;" alt="logo-colo"></h2>
         <form method="POST">
             {% csrf_token %}
                 {% if errors.autenticación %}
@@ -24,6 +24,7 @@
                 <button type="submit">Iniciar Sesión</button>
             </div>
         </form>
+        <div style="margin-top: 20px; display: flex; justify-content: center;">No tienes cuenta aún? &nbsp; <a href="registro_cliente">Registrate aquí</a></div>
     </div>
 </body>
 </html>
