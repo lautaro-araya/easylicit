@@ -1,0 +1,6 @@
+
+django==4.2.7
+openpyxl==2.0.0
+python-docx==1.1.2
+docx2pdf==-0.1.8
+xlrd==1.2.0
