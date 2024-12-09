@@ -10,7 +10,7 @@ services:
     name: easylicit
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "python -m gunicorn easylicit.asgi:application -k uvicorn.workers.UvicornWorker"
+    startCommand: "python -m gunicorn EasyLicit.asgi:application -k uvicorn.workers.UvicornWorker"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
