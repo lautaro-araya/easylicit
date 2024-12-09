@@ -1,7 +1,7 @@
 databases:
   - name: easylicit
     plan: free
-    databaseName: easylicit
+    databaseName: easylicitdb
     user: easylicit
 
 services:
