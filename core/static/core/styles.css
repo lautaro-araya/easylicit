@@ -13,8 +13,6 @@ body{
     margin: 0 auto;
     height: 100%;
     width: 100%;
-    overflow: hidden;
-    position: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -26,6 +24,10 @@ body{
     background-color: var(--light);
     justify-content: center;
     align-items: center;
+}
+
+.login-container form{
+    max-height: 300px;
 }
 
 .login-container  h2{
@@ -168,4 +170,24 @@ body{
     display: block;
     width: 50%;
     margin-left: 10px;
+}
+
+.alert {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.alert-success .icon {
+    margin-right: 10px;
+}
+.alert .close {
+    margin-left: auto;
+    cursor: pointer;
 }

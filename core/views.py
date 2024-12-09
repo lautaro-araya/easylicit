@@ -1,18 +1,17 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib import messages
 import os
-from django.shortcuts import render
+from django.contrib import messages
 from django.http import HttpResponse
 from django.core.files.storage import FileSystemStorage
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 from docx import Document
-from openpyxl import Workbook
 from xlrd import open_workbook
-import weasyprint
 from .forms import RegistroClienteForm
 from django.contrib.auth.decorators import login_required
+from docx2pdf import convert
+
 
 UPLOAD_DIR = 'uploads/'
 
@@ -98,7 +97,6 @@ def iniciar_sesion(request):
         "errors": errors,
     })
 
-"""
 @login_required
 def upload_excel(request):
     if request.method == 'POST' and request.FILES.get('excel_file'):
@@ -196,134 +194,25 @@ def upload_excel(request):
                 if '{nombre}' in paragraph.text:
                     paragraph.text = paragraph.text.replace('{nombre}', f"{nombre_value}")
 
-        # Guardar el archivo Word generado
+        # Ruta para guardar el archivo DOCX generado
         generated_path = os.path.join(UPLOAD_DIR, 'documento_generado.docx')
-        doc.save(generated_path)
+        doc.save(generated_path)  # Guardar el archivo generado (ya lo tienes configurado previamente)
 
-        # Descargar el archivo generado
-        with open(generated_path, 'rb') as f:
-            response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-            response['Content-Disposition'] = 'attachment; filename=cotizacion.docx'
+        # Ruta para el archivo PDF generado
+        pdf_generated_path = os.path.join(UPLOAD_DIR, 'documento_generado.pdf')
+
+        # Convertir el archivo DOCX a PDF
+        convert(generated_path, pdf_generated_path)  # Convierte el DOCX a PDF
+
+        # Verificar si el archivo PDF fue generado correctamente
+        if not os.path.exists(pdf_generated_path):
+            return HttpResponse("El archivo PDF no se generó correctamente.", status=500)
+        
+        with open(pdf_generated_path, 'rb') as f:
+            response = HttpResponse(f.read(), content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename=cotizacion.pdf'
             return response
+        # Redirigir a la misma página      
 
-    return render(request, 'core/upload_excel.html')
-"""
-def upload_excel(request):
-    if request.method == 'POST' and request.FILES.get('excel_file'):
-        # Guardar el archivo Excel en el servidor
-        excel_file = request.FILES['excel_file']
-        fs = FileSystemStorage(location=UPLOAD_DIR)
-        filename = fs.save(excel_file.name, excel_file)
-        filepath = os.path.join(UPLOAD_DIR, filename)
-
-        # Leer la fila seleccionada
-        selected_row = request.POST.get('selected_row')
-        try:
-            selected_row = int(selected_row)  # Asegúrate de que es un número válido
-        except ValueError:
-            return HttpResponse("Número de fila no válido. Por favor, inténtalo de nuevo.")
-
-        workbook = load_workbook(filepath)
-        sheet = workbook.active
-
-        # Validar que la fila seleccionada sea válida
-        try:
-            row_data = sheet[selected_row]
-        except IndexError:
-            return HttpResponse("Número de fila fuera de rango. Por favor, verifica el archivo Excel.")
-
-        # Extraer datos de la fila
-        id_value = row_data[0].value
-        nombre_value = row_data[1].value
-        institucion_value = row_data[7].value
-        presupuesto_value = row_data[8].value
-
-        # Extraer datos adicionales del formulario
-        datos_tecnicos = request.POST.get('tecnic')
-        fecha_entrega = request.POST.get('fecha')
-        plazo_entrega = request.POST.get('plazo')
-        garantia = request.POST.get('garantia')
-        subtotal = request.POST.get('subtotal')
-
-        total = int(int(subtotal)*1.19)
-        iva = int(total) - int(subtotal)
-
-        # Cargar la plantilla Word
-        template_path = 'core/plantilla.docx'
-        doc = Document(template_path)
-
-        # Reemplazar los marcadores en el cuerpo del documento
-        for paragraph in doc.paragraphs:
-            if '{id}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{id}', str(id_value))
-            if '{institucion}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{institucion}', str(institucion_value))
-            if '{presupuesto}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{presupuesto}', f"{presupuesto_value}")
-            if '{nombre}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{nombre}', f"{nombre_value}")
-            if '{datos_tecnicos}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{datos_tecnicos}', datos_tecnicos)
-            if '{fecha}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{fecha}', fecha_entrega)
-            if '{plazo}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{plazo}', f"{plazo_entrega}")
-            if '{garantia}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{garantia}', f"{garantia}")
-            if '{subtotal}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{subtotal}', f"{subtotal}")
-            if '{iva}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{iva}', f"{iva}")
-            if '{total}' in paragraph.text:
-                paragraph.text = paragraph.text.replace('{total}', f"{total}")
-
-        # Guardar el archivo Word generado
-        generated_word_path = os.path.join(UPLOAD_DIR, 'documento_generado.docx')
-        doc.save(generated_word_path)
-
-        # Convertir el archivo Word generado a PDF
-        generated_pdf_path = os.path.join(UPLOAD_DIR, 'documento_generado.pdf')
-        html_content = """
-        <html>
-        <head>
-            <title>Documento Generado</title>
-        </head>
-        <body>
-            <h1>Institución: {}</h1>
-            <p>ID: {}</p>
-            <p>Nombre: {}</p>
-            <p>Presupuesto: {}</p>
-            <p>Datos Técnicos: {}</p>
-            <p>Fecha de Entrega: {}</p>
-            <p>Plazo: {}</p>
-            <p>Garantía: {} meses</p>
-            <p>Subtotal: {}</p>
-            <p>IVA: {}</p>
-            <p>Total: {}</p>
-        </body>
-        </html>
-        """.format(
-            institucion_value, id_value, nombre_value, presupuesto_value, 
-            datos_tecnicos, fecha_entrega, plazo_entrega, garantia, 
-            subtotal, iva, total
-        )
-
-        # Crear PDF
-        pdf = weasyprint.HTML(string=html_content).write_pdf()
-        with open(generated_pdf_path, 'wb') as pdf_file:
-            pdf_file.write(pdf)
-
-        # Descargar el archivo según la selección
-        file_type = request.POST.get('file_type')  # "word" o "pdf"
-        if file_type == 'word':
-            with open(generated_word_path, 'rb') as f:
-                response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-                response['Content-Disposition'] = 'attachment; filename=cotizacion.docx'
-                return response
-        elif file_type == 'pdf':
-            with open(generated_pdf_path, 'rb') as f:
-                response = HttpResponse(f.read(), content_type='application/pdf')
-                response['Content-Disposition'] = 'attachment; filename=cotizacion.pdf'
-                return response
 
     return render(request, 'core/upload_excel.html')
