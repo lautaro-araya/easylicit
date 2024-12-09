@@ -1,0 +1,22 @@
+databases:
+  - name: easylicit
+    plan: free
+    databaseName: easylicit
+    user: easylicit
+
+services:
+  - type: web
+    plan: free
+    name: easylicit
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "python -m gunicorn easylicit.asgi:application -k uvicorn.workers.UvicornWorker"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: easylicitdb
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
