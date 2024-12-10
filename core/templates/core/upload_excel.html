@@ -19,40 +19,47 @@
         <form method="POST" enctype="multipart/form-data" action="{% url 'upload_excel' %}">
             {% csrf_token %}
             <p>
-                <h2><img src="{% static 'core/logo-color-peke.jpg' %}"  width="200px"  style="border-radius: 12px;" alt="logo-colo"></h2>
+                <h2>
+                    <img src="{% static 'core/logo-color-peke.jpg' %}" width="200px" style="border-radius: 12px;" alt="logo-colo">
+                </h2>
             </p>
-            <p>
+            <p style="display: flex; justify-content: center;">
                 <label class="btn-xls">
                     <img src="{% static 'core/excl-logo.svg' %}" width="20px"></img>
-                    <span style="color: #fff;">Subir Archivo Excel</span> 
-                    <input id="excel_file" name="excel_file" type="file"/>
+                    <span style="color: #fff;">Subir Archivo Excel</span>
+                    <input id="excel_file" name="excel_file" type="file" required/>
                 </label>
-                <p id="file-name"></p>
-                
             </p>
+            <div id="notification" style="display: none; margin-top: 10px; padding: 10px; border-radius: 5px; background-color: #ffffff; color: rgb(0, 207, 79); font-weight: bold; text-align: center;">
+                ¡Archivo subido correctamente!
+            </div>
             <p style="margin-top: 2px;">
                 <label for="fila">Fila: </label>
                 <input id="fila" name="selected_row" type="text" required />
+                <div id="filaError" class="error"></div>
             </p>
             <p style="margin-top: 2px;">
                 <label for="tecnic">Datos tecnicos: </label>
-                <input id="tecnic" name="tecnic" type="text" required  />
+                <input id="tecnic" name="tecnic" type="text" required />
             </p>
             <p style="margin-top: 2px;">
-                <label for="fercha">Fecha de entrega: </label>
+                <label for="fecha">Fecha de entrega: </label>
                 <input id="fecha" name="fecha" type="date" required />
             </p>
             <p style="margin-top: 2px;">
                 <label for="plazo">Plazo de entrega en días: </label>
                 <input id="plazo" name="plazo" type="text" required />
+                <div id="plazoError" class="error"></div>
             </p>
             <p style="margin-top: 2px;">
                 <label for="garantia">Garantia en meses: </label>
                 <input id="garantia" name="garantia" type="text" required />
+                <div id="garantiaError" class="error"></div>
             </p>
             <p style="margin-top: 2px;">
                 <label for="subtotal">Sub total: </label>
                 <input id="subtotal" name="subtotal" type="text" required />
+                <div id="subtotalError" class="error"></div>
             </p>
             <p style="display: flex; justify-content: center; margin-top: 2px;">
                 <button type="submit">Rellenar Plantilla</button>
@@ -61,13 +68,71 @@
     </div>
 </body>
 <script>
-    const fileInput = document.getElementById('file-upload');
-    const fileNameDisplay = document.getElementById('file-name');
+    // Función para validar entradas (solo números)
+    function validateInput(event) {
+        const input = event.target;
+        const value = input.value;
 
-    // Mostrar el nombre del archivo seleccionado
+        // Regex para permitir solo números
+        const regex = /^[0-9]*$/;
+
+        if (!regex.test(value)) {
+            input.value = value.slice(0, -1); // Remover el último carácter inválido
+            showError(input.id, "Solo se permiten números.");
+        } else {
+            hideError(input.id);
+        }
+    }
+
+    // Mostrar mensaje de error
+    function showError(inputId, message) {
+        const errorElement = document.getElementById(`${inputId}Error`);
+        errorElement.textContent = message;
+        errorElement.style.color = "red";
+        errorElement.style.fontSize = "12px";
+    }
+
+    // Ocultar mensaje de error
+    function hideError(inputId) {
+        const errorElement = document.getElementById(`${inputId}Error`);
+        errorElement.textContent = "";
+    }
+
+    // Agregar eventos de validación a los campos
+    const fields = ["fila", "plazo", "garantia", "subtotal"];
+    fields.forEach(field => {
+        const inputElement = document.getElementById(field);
+        inputElement.addEventListener("input", validateInput);
+    });
+
+    // Validar al enviar el formulario
+    document.querySelector("form").addEventListener("submit", function (event) {
+        let isValid = true;
+
+        fields.forEach(field => {
+            const inputElement = document.getElementById(field);
+            if (inputElement.value === "") {
+                isValid = false;
+                showError(field, "Este campo no puede estar vacío.");
+            }
+        });
+
+        if (!isValid) {
+            event.preventDefault(); // Prevenir el envío del formulario
+        }
+    });
+</script>
+<script>
+    const fileInput = document.getElementById('excel_file'); // Asegúrate de usar el ID correcto
+    const notification = document.getElementById('notification');
+
+    // Mostrar notificación al seleccionar un archivo
     fileInput.addEventListener('change', (event) => {
-      const fileName = event.target.files[0]?.name || "Ningún archivo seleccionado";
-      fileNameDisplay.textContent = fileName;
+        if (event.target.files.length > 0) {
+            notification.style.display = 'block'; // Muestra la notificación
+        } else {
+            notification.style.display = 'none'; // Oculta la notificación si no hay archivo
+        }
     });
   </script>
 </html>

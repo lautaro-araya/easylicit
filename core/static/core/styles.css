@@ -105,8 +105,8 @@ body{
 
 .btn-xls {
     cursor: pointer;
-    display: inline-flex;
-    width: 90%;
+    display: flex;
+    width: 40%;
     align-items: center; /* Centrar verticalmente */
     justify-content: center;
     background-color: #206040;
